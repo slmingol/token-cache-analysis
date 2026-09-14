@@ -6,9 +6,24 @@ Pure Python — no external packages.
 
 import argparse
 import json
+import os
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+
+
+def _load_dotenv():
+    env_file = Path(__file__).parent / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, _, v = line.partition("=")
+        os.environ.setdefault(k.strip(), v.strip())
+
+_load_dotenv()
 
 
 def extract_cache_tokens(data):
@@ -49,12 +64,13 @@ Examples:
   python3 claude_cache.py --sessions-dir /path/to/.claude/projects
         """,
     )
+    default_sessions = Path(os.environ.get("SESSIONS_DIR", "~/.claude/projects")).expanduser()
     parser.add_argument(
         "--sessions-dir",
         type=Path,
-        default=Path.home() / ".claude" / "projects",
+        default=default_sessions,
         metavar="DIR",
-        help="path to Claude Code projects dir (default: ~/.claude/projects)",
+        help=f"path to Claude Code projects dir (default: {default_sessions}, or $SESSIONS_DIR)",
     )
     args = parser.parse_args()
 

@@ -15,6 +15,22 @@
 
 Scripts for analyzing Claude Code prompt cache usage across all local sessions.
 
+## Configuration
+
+Copy `.env.example` to `.env` and set your workspace dirs:
+
+```bash
+cp .env.example .env
+```
+
+```ini
+# .env
+CACHE_GROUPS=~/dev/projects:~/dev/work:~/side-projects
+# SESSIONS_DIR=~/.claude/projects
+```
+
+`.env` is gitignored. CLI flags (`--groups`, `--sessions-dir`) override `.env` values.
+
 ## Background
 
 Claude Code writes tokens to two cache tiers:

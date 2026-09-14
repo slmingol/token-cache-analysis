@@ -13,6 +13,20 @@ from collections import defaultdict
 from pathlib import Path
 
 
+def _load_dotenv():
+    env_file = Path(__file__).parent / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, _, v = line.partition("=")
+        os.environ.setdefault(k.strip(), v.strip())
+
+_load_dotenv()
+
+
 def extract_cache_tokens(data):
     usage = None
     if isinstance(data, dict):
@@ -82,10 +96,13 @@ def print_group(label, projects):
 
 def main():
     home = Path.home()
-    default_groups = [
-        str(home / "dev" / "projects"),
-        str(home / "dev" / "bandwidth"),
-    ]
+    env_groups = os.environ.get("CACHE_GROUPS", "")
+    default_groups = (
+        [str(Path(g).expanduser()) for g in env_groups.split(":") if g.strip()]
+        if env_groups
+        else [str(home / "dev" / "projects"), str(home / "dev" / "bandwidth")]
+    )
+    default_sessions = Path(os.environ.get("SESSIONS_DIR", "~/.claude/projects")).expanduser()
 
     parser = argparse.ArgumentParser(
         description="Analyze Claude Code prompt cache efficiency, grouped by workspace.",
@@ -111,14 +128,14 @@ Examples:
         nargs="+",
         default=default_groups,
         metavar="DIR",
-        help=f"workspace dirs to split by (default: {' '.join(default_groups)})",
+        help=f"workspace dirs to split by (default from $CACHE_GROUPS or built-in: {' '.join(default_groups)})",
     )
     parser.add_argument(
         "--sessions-dir",
         type=Path,
-        default=home / ".claude" / "projects",
+        default=default_sessions,
         metavar="DIR",
-        help="path to Claude Code projects dir (default: ~/.claude/projects)",
+        help=f"path to Claude Code projects dir (default: {default_sessions}, or $SESSIONS_DIR)",
     )
     args = parser.parse_args()
 
