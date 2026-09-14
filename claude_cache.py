@@ -67,6 +67,7 @@ Examples:
     total_files = 0
     processed_turns = 0
 
+    print("claude_cache.py  [--sessions-dir DIR]  [--help]")
     print(f"Scanning {projects_dir} ...")
 
     for jsonl_file in projects_dir.rglob("*.jsonl"):

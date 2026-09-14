@@ -137,6 +137,8 @@ Examples:
 
     group_data = {label: defaultdict(lambda: {"5m": 0, "1h": 0}) for label in groups_map.values()}
 
+    print("claude_cache_by_project.py  [--groups DIR ...]  [--sessions-dir DIR]  [--help]")
+
     for project_dir in projects_dir.iterdir():
         if not project_dir.is_dir():
             continue
