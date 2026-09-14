@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Claude Code Cache Analyzer - Daily 5m vs 1h with 5m Percentage
 Scans all your sessions and shows daily totals + 5m % of cache writes.

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Claude Code Cache Efficiency by Project
 Groups projects by workspace dir and rates each EFFICIENT / MIXED / WASTEFUL.
