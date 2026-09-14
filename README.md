@@ -29,7 +29,9 @@ CACHE_GROUPS=~/dev/projects:~/dev/work:~/side-projects
 # SESSIONS_DIR=~/.claude/projects
 ```
 
-`.env` is gitignored. CLI flags (`--groups`, `--sessions-dir`) override `.env` values.
+`.env` is gitignored and loaded from the script's own directory (`~/dev/projects/token-cache-analysis/.env`), not the current working directory — so it works correctly regardless of where you invoke the scripts from.
+
+Priority order: CLI flag → `.env` → built-in default.
 
 ## Background
 
