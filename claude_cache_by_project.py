@@ -1,17 +1,16 @@
 """
-Claude Code Cache Efficiency by Project — split ~/dev/projects vs ~/dev/bandwidth
+Claude Code Cache Efficiency by Project
+Groups projects by workspace dir and rates each EFFICIENT / MIXED / WASTEFUL.
 5m cache = wasteful (expires fast, likely not reused)
 1h cache = efficient (longer TTL, better reuse)
+Pure Python — no external packages.
 """
 
+import argparse
 import json
+import os
 from collections import defaultdict
 from pathlib import Path
-
-GROUPS = {
-    "dev/projects": "-Users-smingolelli-dev-projects-",
-    "dev/bandwidth": "-Users-smingolelli-dev-bandwidth-",
-}
 
 
 def extract_cache_tokens(data):
@@ -35,6 +34,11 @@ def extract_cache_tokens(data):
             m5 = legacy
 
     return m5, h1
+
+
+def path_to_claude_prefix(path: Path) -> str:
+    """Convert an absolute path to the ~/.claude/projects directory prefix format."""
+    return path.expanduser().resolve().as_posix().replace("/", "-")
 
 
 def print_group(label, projects):
@@ -77,10 +81,61 @@ def print_group(label, projects):
 
 
 def main():
-    projects_dir = Path.home() / ".claude" / "projects"
+    home = Path.home()
+    default_groups = [
+        str(home / "dev" / "projects"),
+        str(home / "dev" / "bandwidth"),
+    ]
 
-    # group_label -> {proj_name -> {5m, 1h}}
-    groups = {label: defaultdict(lambda: {"5m": 0, "1h": 0}) for label in GROUPS}
+    parser = argparse.ArgumentParser(
+        description="Analyze Claude Code prompt cache efficiency, grouped by workspace.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Cache tiers:
+  5m  ephemeral  — short TTL, cheap, often expires before reuse  (wasteful if high %)
+  1h  ephemeral  — long TTL, higher cost, survives most turns    (efficient)
+
+Verdicts:
+  EFFICIENT   <30%% 5m
+  MIXED       30-70%% 5m
+  WASTEFUL    >70%% 5m
+
+Examples:
+  python3 claude_cache_by_project.py
+  python3 claude_cache_by_project.py --groups ~/work ~/personal
+  python3 claude_cache_by_project.py --sessions-dir /path/to/.claude/projects
+        """,
+    )
+    parser.add_argument(
+        "--groups",
+        nargs="+",
+        default=default_groups,
+        metavar="DIR",
+        help=f"workspace dirs to split by (default: {' '.join(default_groups)})",
+    )
+    parser.add_argument(
+        "--sessions-dir",
+        type=Path,
+        default=home / ".claude" / "projects",
+        metavar="DIR",
+        help="path to Claude Code projects dir (default: ~/.claude/projects)",
+    )
+    args = parser.parse_args()
+
+    projects_dir = args.sessions_dir
+    if not projects_dir.exists():
+        print(f"ERROR: {projects_dir} not found. Use --sessions-dir to specify the path.")
+        raise SystemExit(1)
+
+    # Build prefix -> label map from the group paths
+    groups_map = {}
+    for g in args.groups:
+        p = Path(g).expanduser().resolve()
+        prefix = p.as_posix().replace("/", "-")
+        label = str(p).replace(str(home) + "/", "~/")
+        groups_map[prefix] = label
+
+    group_data = {label: defaultdict(lambda: {"5m": 0, "1h": 0}) for label in groups_map.values()}
 
     for project_dir in projects_dir.iterdir():
         if not project_dir.is_dir():
@@ -89,10 +144,10 @@ def main():
 
         matched_label = None
         proj_name = None
-        for label, prefix in GROUPS.items():
-            if dirname.startswith(prefix):
+        for prefix, label in groups_map.items():
+            if dirname.startswith(prefix + "-") or dirname == prefix:
                 matched_label = label
-                proj_name = dirname[len(prefix):]
+                proj_name = dirname[len(prefix):].lstrip("-") or dirname
                 break
 
         if not matched_label:
@@ -112,13 +167,13 @@ def main():
                         m5, h1 = extract_cache_tokens(data)
                         if m5 == 0 and h1 == 0:
                             continue
-                        groups[matched_label][proj_name]["5m"] += m5
-                        groups[matched_label][proj_name]["1h"] += h1
+                        group_data[matched_label][proj_name]["5m"] += m5
+                        group_data[matched_label][proj_name]["1h"] += h1
             except Exception:
                 pass
 
-    for label in GROUPS:
-        filtered = {k: v for k, v in groups[label].items() if v["5m"] + v["1h"] > 0}
+    for label in groups_map.values():
+        filtered = {k: v for k, v in group_data[label].items() if v["5m"] + v["1h"] > 0}
         print_group(label, filtered)
 
     print()

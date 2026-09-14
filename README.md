@@ -6,9 +6,10 @@
 
 [![Python](https://img.shields.io/badge/python-3.8%2B-3776ab?logo=python&logoColor=white)](https://python.org)
 [![No Dependencies](https://img.shields.io/badge/dependencies-none-3fb950)](https://github.com/slmingol/token-cache-analysis/blob/main/claude_cache.py)
+[![License](https://img.shields.io/github/license/slmingol/token-cache-analysis)](https://github.com/slmingol/token-cache-analysis/blob/main/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/slmingol/token-cache-analysis?color=58a6ff)](https://github.com/slmingol/token-cache-analysis/commits/main)
 [![Stars](https://img.shields.io/github/stars/slmingol/token-cache-analysis?style=social)](https://github.com/slmingol/token-cache-analysis/stargazers)
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-orange?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0tMiAxNWwtNS01IDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPjwvc3ZnPg==)](https://claude.ai/code)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-orange)](https://claude.ai/code)
 
 </div>
 
@@ -35,6 +36,8 @@ Scans all sessions, shows **daily** cache write breakdown.
 
 ```
 python3 claude_cache.py
+python3 claude_cache.py --sessions-dir /path/to/.claude/projects
+python3 claude_cache.py --help
 ```
 
 Example output:
@@ -62,6 +65,9 @@ Groups projects under `~/dev/projects` and `~/dev/bandwidth` separately. Rates e
 
 ```
 python3 claude_cache_by_project.py
+python3 claude_cache_by_project.py --groups ~/work ~/personal ~/side-projects
+python3 claude_cache_by_project.py --sessions-dir /path/to/.claude/projects
+python3 claude_cache_by_project.py --help
 ```
 
 Thresholds:
